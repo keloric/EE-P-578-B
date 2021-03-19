@@ -3,7 +3,7 @@
 <head><meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Project_Report</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
+<title>Project Code</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
 
 
 
@@ -14272,142 +14272,496 @@ a.anchor-link {
 
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="EE-578B-Convex-Optimization-Project">EE 578B Convex Optimization Project<a class="anchor-link" href="#EE-578B-Convex-Optimization-Project">&#182;</a></h1><h2 id="Kyle-Hadley">Kyle Hadley<a class="anchor-link" href="#Kyle-Hadley">&#182;</a></h2>
+<h1 id="Code">Code<a class="anchor-link" href="#Code">&#182;</a></h1>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[1]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">matplotlib.patches</span> <span class="k">as</span> <span class="nn">mpatches</span>
+<span class="kn">import</span> <span class="nn">matplotlib.lines</span> <span class="k">as</span> <span class="nn">mlines</span>
+<span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<span class="kn">from</span> <span class="nn">mpl_toolkits.mplot3d.art3d</span> <span class="kn">import</span> <span class="n">Poly3DCollection</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s1">&#39;ignore&#39;</span><span class="p">)</span>
+<span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[2]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># First randomly generate a set of 100 flights be used in our calculations</span>
+<span class="n">number_of_flights</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="n">nodes</span> <span class="o">=</span> <span class="mi">6</span>
+
+<span class="c1"># pop is the population of each of cities in our graph; prob will be used for generating our array of flights</span>
+<span class="n">pop</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">6.34773e5</span><span class="p">,</span> <span class="mf">1.97756e5</span><span class="p">,</span> <span class="mf">3.967e6</span><span class="p">,</span> <span class="mf">8.74961e5</span><span class="p">,</span> <span class="mf">2.465e5</span><span class="p">,</span> <span class="mf">7.24305e5</span><span class="p">]])</span>
+<span class="n">prob</span> <span class="o">=</span> <span class="n">pop</span> <span class="o">/</span> <span class="n">pop</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+<span class="c1"># Our flights (designated by b)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">number_of_flights</span><span class="p">,</span> <span class="n">nodes</span><span class="p">))</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">number_of_flights</span><span class="p">):</span>
+    <span class="c1"># Generate our b_i by randomly selecting two city pairs with a weighted probability on the more populated cities</span>
+    <span class="n">b_ones</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">prob</span><span class="p">))</span>
+    <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">b_ones</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">1</span> <span class="c1"># Pick a random starting city for flight</span>
+    <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">b_ones</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="c1"># Pick a random end city for flight</span>
+
+<span class="c1"># d is the cost of going through an airport, which is a function of population size as well (we&#39;ll say a factor of 0.001)</span>
+<span class="n">d</span> <span class="o">=</span> <span class="mf">0.001</span><span class="o">*</span><span class="n">pop</span><span class="o">.</span><span class="n">T</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;---First Ten Flights Generated---&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">10</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Key:</span><span class="se">\n</span><span class="s1">-1 = Departure city</span><span class="se">\n</span><span class="s1"> 1 = Arrival City&#39;</span><span class="p">)</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
+<pre>---First Ten Flights Generated---
+[[ 0.  0.  1. -1.  0.  0.]
+ [ 0.  0.  1.  0. -1.  0.]
+ [ 0.  0.  1.  0.  0. -1.]
+ [ 0.  0. -1.  0.  0.  1.]
+ [ 0.  0. -1.  1.  0.  0.]
+ [ 0.  0.  1.  0.  0. -1.]
+ [ 1. -1.  0.  0.  0.  0.]
+ [ 0.  0.  0.  1. -1.  0.]
+ [ 0.  0.  0. -1.  0.  1.]
+ [ 0.  0.  1. -1.  0.  0.]]
+
+Key:
+-1 = Departure city
+ 1 = Arrival City
+</pre>
+</div>
+</div>
+
+</div>
+
+</div>
+
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h2 id="Hub-and-spoke-Model">Hub-and-spoke Model<a class="anchor-link" href="#Hub-and-spoke-Model">&#182;</a></h2>
 </div>
 </div>
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="Introduction">Introduction<a class="anchor-link" href="#Introduction">&#182;</a></h2><p>Working within the aviation industry, one of the most interesting convex optimization problems that airlines face involves deciding which routes should be offered to their customers. There are many different factors that are involved in choosing the routes: passenger demand, cost of operating route, aircraft available to operate the route, etc.</p>
-<p>Based on these factors, there have been predominately two approaches to planning airline's routes: (1) the hub-and-spoke model or (2) point-to-point.</p>
-<p><img src="point_hub_network.png" alt="point_hub_network"></p>
-<p>The hub-and-spoke model mimics the spokes of a wheel spreading out from a single; typically airlines has a few select hubs (depending on an airline's size) that all flights fly through. An example of this is Alaska Airlines hub based out of the Seattle-Tacoma airport. The majority of the flights operated by Alaska Air flows through this airport. In this model, the airline chooses to connect as many cities to a single hub such that customers can access a larger network of cities, but are likely to require at least 1 or 2 layover flights. This enables an airline to operate larger aircraft between major hubs (e.g. Los Angeles and New York) and then utilize smaller, regional aircraft for any small flights from the hub to smaller cities (e.g. Log Angeles to San Diego).</p>
-<p>The point-to-point model instead attempts to connect as many cities directly rather than through a single hub. The point-to-point model emphasizes flying between two cities directly, regardless of size. An example of this approach is RyanAir which operates many low-cost flights through Europe continent. RyanAir attempts to connect as many cities, regardless of the size of cities to provide easy to access flights. Airlines can often more easily ensure that their routes are meeting the customer demand for a specific pair of cities as they don't need to be as concerned with ensuring "connecting" flights are supported.</p>
-<p>There are certainly disadvantages to both solutions. A hub-and-spoke model often leads to higher facility costs and requires passengers to often make connecting flights to reach their final destination (ultimately leading to longer travel times). A point-to-point model also requires significantly more aircraft in a given fleet to support the same number of routes; sometimes this may mean that cities cannot be supported within a point-to-point model if an airline does not have adequate aircraft within their fleet.</p>
-<p>Through my project, I hope to provide the foundation of a tool that could allow airlines to more quickly plan their routes based on customer demand. The model will compare multiple networks connected cities - following the hub-and-spoke model, point-to-point, and a combination of the two - to identify the optimal routes to maximize customer reward.</p>
-<h2 id="Sample-Airline-for-Analysis">Sample Airline for Analysis<a class="anchor-link" href="#Sample-Airline-for-Analysis">&#182;</a></h2><p>To help develop the preliminary aspects of the model, I'll be imagining that my model is to be used for an upstart airline - <em>Concave Airlines</em> - to help them identify how they should offer routes between various cities to support customer demands. <em>Concave Airlines</em> is based out of Las Vegas, Nevada and is focused on mainly offering routes along the west coast and mountain states of the US, but also is interested in potentially supporting other major cities across the US and in North America.</p>
-<p>The following cities are currently of interest to be serviced by the airline:</p>
-<ul>
-<li>Las Vegas, NV</li>
-<li>Reno, NV</li>
-<li>Salt Lake City, UT</li>
-<li>Seattle, WA</li>
-<li>Los Angeles, CA</li>
-<li>San Francisco, CA</li>
-</ul>
-<p><img src="City_Connections.png" alt="graph of cities"></p>
+<h3 id="Primal-Problem">Primal Problem<a class="anchor-link" href="#Primal-Problem">&#182;</a></h3>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[3]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># Set the number of edges for the given model (Hub-and-spoke)</span>
+<span class="n">edges</span> <span class="o">=</span> <span class="mi">10</span>
 
+<span class="c1"># Costs are equivalent to the number of minutes required to travel between two cities (nodes) of our graph</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">65</span><span class="p">,</span> <span class="mi">65</span><span class="p">,</span> <span class="mi">85</span><span class="p">,</span> <span class="mi">85</span><span class="p">,</span> <span class="mi">70</span><span class="p">,</span> <span class="mi">60</span><span class="p">,</span> <span class="mi">150</span><span class="p">,</span> <span class="mi">140</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="mi">75</span><span class="p">]])</span><span class="o">.</span><span class="n">T</span>
+
+<span class="c1"># Generate our E matrices based on the hub-and-spoke routes</span>
+<span class="n">E_i</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+                <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>
+<span class="n">E_o</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+                <span class="p">[</span><span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span>  <span class="mi">0</span><span class="p">],</span>
+                <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">],</span>
+                <span class="p">[</span><span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">],</span>
+                <span class="p">[</span><span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">],</span>
+                <span class="p">[</span><span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">]])</span>
+
+<span class="n">E</span> <span class="o">=</span> <span class="n">E_i</span> <span class="o">-</span> <span class="n">E_o</span>
+
+<span class="c1"># x is a variable with shape |e| x |i| where i is the the number of routes</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">([</span><span class="n">edges</span><span class="p">,</span> <span class="n">number_of_flights</span><span class="p">])</span>
+<span class="n">obj</span> <span class="o">=</span> <span class="mf">0.</span>
+<span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">&gt;=</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">number_of_flights</span><span class="p">):</span>
+    <span class="n">obj</span> <span class="o">=</span> <span class="n">obj</span> <span class="o">+</span> <span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">T</span> <span class="o">+</span> <span class="n">d</span><span class="o">.</span><span class="n">T</span><span class="nd">@E_o</span><span class="p">)</span><span class="nd">@x</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span>
+
+    <span class="n">constraints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">E</span> <span class="o">@</span> <span class="n">x</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:])</span>
+
+<span class="n">primal</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">obj</span><span class="p">),</span> <span class="n">constraints</span><span class="p">)</span>
+<span class="n">primal</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Primal Problem&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Optimal Value:&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">round_</span><span class="p">((</span><span class="n">primal</span><span class="o">.</span><span class="n">value</span> <span class="o">/</span> <span class="mi">60</span><span class="p">),</span> <span class="n">decimals</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span> <span class="s1">&#39;Flight Hours&#39;</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Optimal x (i.e. Route Taken for Given Flight):&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round_</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">absolute</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]),</span> <span class="n">decimals</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="s1">&#39;Flight Hours&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Key:</span><span class="se">\n</span><span class="s1"> Cols = Flight(s)</span><span class="se">\n</span><span class="s1"> Rows = Edges Traveled (i.e. Legs of Flight)</span><span class="se">\n</span><span class="s1"> 1 = City is in route&#39;</span><span class="p">)</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
+<pre>Primal Problem
+Optimal Value: 3303.8 Flight Hours
+
+Optimal x (i.e. Route Taken for Given Flight):
+[[0. 0. 0. 1. 1.]
+ [1. 1. 1. 0. 0.]
+ [1. 0. 0. 0. 0.]
+ [0. 0. 0. 0. 1.]
+ [0. 1. 0. 0. 0.]
+ [0. 0. 0. 0. 0.]
+ [0. 0. 1. 0. 0.]
+ [0. 0. 0. 1. 0.]
+ [0. 0. 0. 0. 0.]
+ [0. 0. 0. 0. 0.]] Flight Hours
+
+Key:
+ Cols = Flight(s)
+ Rows = Edges Traveled (i.e. Legs of Flight)
+ 1 = City is in route
+</pre>
+</div>
+</div>
+
+</div>
+
+</div>
+
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h3 id="Dual-Problem">Dual Problem<a class="anchor-link" href="#Dual-Problem">&#182;</a></h3>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[4]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">v</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">([</span><span class="n">nodes</span><span class="p">,</span> <span class="n">number_of_flights</span><span class="p">])</span>
+<span class="n">mu</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">([</span><span class="n">edges</span><span class="p">,</span> <span class="n">number_of_flights</span><span class="p">])</span>
+
+<span class="n">obj</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">-</span><span class="n">v</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">b</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+<span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span><span class="n">mu</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">]</span>
+<span class="n">constraints</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">c</span><span class="o">.</span><span class="n">T</span> <span class="o">+</span> <span class="n">d</span><span class="o">.</span><span class="n">T</span><span class="nd">@E_o</span><span class="p">)</span> <span class="o">+</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="nd">@E</span> <span class="o">-</span> <span class="n">mu</span><span class="o">.</span><span class="n">T</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+
+<span class="n">obj</span> <span class="o">=</span> <span class="mf">0.</span>
+<span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span><span class="n">mu</span><span class="o">&gt;=</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">number_of_flights</span><span class="p">):</span>
+    <span class="n">obj</span> <span class="o">=</span> <span class="n">obj</span> <span class="o">+</span> <span class="p">(</span><span class="o">-</span><span class="n">v</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:])</span>
+    <span class="n">constraints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">T</span> <span class="o">+</span> <span class="n">d</span><span class="o">.</span><span class="n">T</span><span class="nd">@E_o</span><span class="p">)</span> <span class="o">+</span> <span class="n">v</span><span class="p">[:,</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="nd">@E</span> <span class="o">-</span> <span class="n">mu</span><span class="p">[:,</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">T</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+
+<span class="n">dual</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Maximize</span><span class="p">(</span><span class="n">obj</span><span class="p">),</span> <span class="n">constraints</span><span class="p">)</span>
+<span class="n">dual</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Dual Problem&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Optimal Value:&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">round_</span><span class="p">((</span><span class="n">dual</span><span class="o">.</span><span class="n">value</span> <span class="o">/</span> <span class="mi">60</span><span class="p">),</span> <span class="n">decimals</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span> <span class="s1">&#39;Flight Hours&#39;</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Optimal v (1st 5 Columns):&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round_</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">value</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">],</span> <span class="n">decimals</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Optimal mu (1st 5 Columns):&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round_</span><span class="p">(</span><span class="n">mu</span><span class="o">.</span><span class="n">value</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">],</span> <span class="n">decimals</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
+<pre>Dual Problem
+Optimal Value: 3303.8 Flight Hours
+
+Optimal v (1st 5 Columns):
+[[   15.88    71.59    18.44  -495.38  -492.82]
+ [ -200.15  -144.45  -197.6   -711.36  -708.81]
+ [ -683.89  -628.18  -681.34  3536.62  3539.18]
+ [  975.84   191.63   138.48  -375.24 -1212.6 ]
+ [ -173.28   388.09  -170.73  -684.49  -681.94]
+ [   65.6    121.31   892.74 -1270.15  -443.01]]
+
+Optimal mu (1st 5 Columns):
+[[4731.8 4731.8 4731.8    0.     0. ]
+ [   0.     0.     0.  4731.8 4731.8]
+ [   0.   839.9  839.9  839.8 1679.7]
+ [1679.7  839.8  839.8  839.9    0. ]
+ [ 505.7    0.   505.7  505.6  505.6]
+ [ 505.6 1011.3  505.6  505.7  505.7]
+ [ 824.6  824.6    0.  1649.1  824.5]
+ [ 824.5  824.5 1649.1    0.   824.6]
+ [ 493.8  493.8  493.8  493.7  493.7]
+ [ 493.7  493.7  493.7  493.8  493.8]]
+</pre>
+</div>
+</div>
+
+</div>
+
+</div>
+
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h2 id="Point-to-point-Model">Point-to-point Model<a class="anchor-link" href="#Point-to-point-Model">&#182;</a></h2>
 </div>
 </div>
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="Problem-Setup">Problem Setup<a class="anchor-link" href="#Problem-Setup">&#182;</a></h1><h2 id="Initial-Model">Initial Model<a class="anchor-link" href="#Initial-Model">&#182;</a></h2><p>We can model our routes as a graph and calculate the minimization akin to the approach taken when modeling shortest path problems with edges formulated. Thus, we can think of the model generically as minimizing the cost of mass flow such that:</p>
-$$\min\limits_x c^Tx$$$$\text{s.t.} \; Ex = b, x \geq 0$$<p>Within our example, the nodes of our graph represents the cities our airline will service and each edge represents a flight route that our airline will support between two pair cities.</p>
-<h2 id="Graph-Structures">Graph Structures<a class="anchor-link" href="#Graph-Structures">&#182;</a></h2><p>In order to leverage this general linear program, we must must have a defined graph that can be used to define the various variables and constraints in the model. However, as we discussed before, there many combinations of flight routes that <em>Concave Airlines</em> could service. It may be advantageous to follow a hub-and-spoke model, requiring all flights to flow through Las Vegas (the airlines main hub). Or the airline could choose to connect all the cities via a point-to-point model.</p>
-<p>Thus, we can create two graphs to compare the cost of utilizing the two methods we've already discussed. Once we've created each graph, we can identify which graph yields the lowest travel cost when servicing the same city pairs (e.g. if we have $X$ flights between city A and B, which would yield the lowest travel cost). Travel cost in our case is measured as flight minutes or hours.</p>
-<p>For both of our graphs that we will be evaluating, the node numbering maps to the following city names:</p>
-<ol>
-<li>Las Vegas</li>
-<li>Salt Lake City</li>
-<li>Los Angeles</li>
-<li>San Franscisco</li>
-<li>Reno</li>
-<li>Seattle</li>
-</ol>
-<p>Our first graph will utilize the hub-and-spoke model as discussed above; the graph is illustrated below:</p>
-<p><img src="Hub_and_spoke_model.png" alt="hub_and_spoke model"></p>
-<p>From this graph, we can see that we have 6 nodes (i.e. cities) and 12 total edges (i.e. flight routes). Thus, we can see that our $E \in \mathbb{R}^{6x12}$ and $b \in \mathbb{R}^{6}$.</p>
-<p>Our second graph will utilize more of a point-to-point model as discussed above; the graph is illustrated below:</p>
-<p><img src="point_to_point_model.png" alt="point-to-point model"></p>
-<p>From this graph, we can see that we have the same 6 nodes but 16 total edges. Thus, we can see that our $E \in \mathbb{R}^{6x16}$ and $b \in \mathbb{R}^{6}$.</p>
-<p>As discussed in the next section, our $c$ matrix represents the cost of traveling along a given edge - we can estimate this using Google Maps estimates of travel time by flight between the city pairs.</p>
-<h2 id="Model-Modifications">Model Modifications<a class="anchor-link" href="#Model-Modifications">&#182;</a></h2><p>Once of the initial issues that can be seen with the initial linear program is that the initial program assumes that we are only moving mass (i.e. our customers) from an single initial node to a single final node. However, <em>Concave Airlines</em> will not just be servicing a single set of passengers between two cities, there will be numerous flights between these various cities on a given day. Thus, in order to account for numerous flights, we need our model to account for having multiple mass flows, initial, and final nodes.</p>
-<p>We can update our model to account for this by modifying our equation such that,</p>
-$$\min\limits_{x} \sum\limits_i^n c^Tx_i$$$$\text{s.t.} \; Ex_i = b_i, x \geq 0 \forall i$$<p>where $x_i$ represents a single flight between two cities as designated by our matrix $b_i$. We can maintain our minimization and inequality term as we want to minimize all of $x$ and we still want $x$ to be greater than or equal to zero.</p>
-<p>For the purposes of this initial sample code, a random set of $100$ routes will be generated between the cities in our graph. The randomization of routes generated will be a function of population of the departure city - as it's reasonable to assume more people are leaving a city with a higher population than a smaller one. We will then compare the resulting travel cost for these $100$ routes against the two graphs discussed above.</p>
-<p>The last modification that will be made to our model is the incorporation of costs associated with edges themselves. As normally experienced by passengers, there is a travel cost associated with the airport itself when leaving an airport - both when making a connecting flight or on the first flight of the journey. In order to account for this, we can incorporate a cost $d$ at each edge in $E_o$ such that our cost can be written as: $(c^T + d^TE_o)$. Thus, we re-write our problem as,</p>
-$$\min\limits_{x} \sum\limits_i^n (c^T + d^TE_o)x_i$$$$\text{s.t.} \; Ex_i = b_i, x \geq 0 \forall i$$<p>Solving for this minimization problem should calculate the total flight hours required to support the $100$ flights of interest.</p>
+<h3 id="Primal-Problem">Primal Problem<a class="anchor-link" href="#Primal-Problem">&#182;</a></h3>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[5]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># Costs are equivalent to the number of minutes required to travel between two cities (nodes) of our graph</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">65</span><span class="p">,</span> <span class="mi">65</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="mi">70</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="mi">130</span><span class="p">,</span> <span class="mi">115</span><span class="p">,</span> <span class="mi">125</span><span class="p">,</span> <span class="mi">125</span><span class="p">,</span> <span class="mi">110</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">75</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="mi">60</span><span class="p">,</span> <span class="mi">75</span><span class="p">]])</span><span class="o">.</span><span class="n">T</span>
+
+<span class="c1"># Generate our E matrices based on the hub-and-spoke routes</span>
+<span class="n">E_i</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+                <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>
+
+<span class="n">E_o</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+                <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>
+
+<span class="n">E</span> <span class="o">=</span> <span class="n">E_i</span> <span class="o">-</span> <span class="n">E_o</span>
+
+<span class="c1"># x is a variable with shape |e| x |i| where i is the the number of routes</span>
+<span class="n">edges</span><span class="o">=</span><span class="mi">16</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">([</span><span class="n">edges</span><span class="p">,</span> <span class="n">number_of_flights</span><span class="p">])</span>
+<span class="n">obj</span> <span class="o">=</span> <span class="mf">0.</span>
+<span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">&gt;=</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">number_of_flights</span><span class="p">):</span>
+    <span class="n">obj</span> <span class="o">=</span> <span class="n">obj</span> <span class="o">+</span> <span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">T</span> <span class="o">+</span> <span class="n">d</span><span class="o">.</span><span class="n">T</span><span class="nd">@E_o</span><span class="p">)</span><span class="nd">@x</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span>
+
+    <span class="n">constraints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">E</span> <span class="o">@</span> <span class="n">x</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">,:])</span>
+
+<span class="n">primal</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">obj</span><span class="p">),</span> <span class="n">constraints</span><span class="p">)</span>
+<span class="n">primal</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Primal Solution:&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">round_</span><span class="p">((</span><span class="n">primal</span><span class="o">.</span><span class="n">value</span> <span class="o">/</span> <span class="mi">60</span><span class="p">),</span> <span class="n">decimals</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span> <span class="s1">&#39;Flight Hours&#39;</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">---Route Taken for Given Flight---&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round_</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">absolute</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]),</span> <span class="n">decimals</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Key:</span><span class="se">\n</span><span class="s1"> Cols = Flight(s)</span><span class="se">\n</span><span class="s1"> Rows = Edges Traveled (i.e. Legs of Flight)</span><span class="se">\n</span><span class="s1"> 1 = City is in route&#39;</span><span class="p">)</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
+<pre>Primal Solution: 3035.53 Flight Hours
+
+---Route Taken for Given Flight---
+[[0. 1. 0. 0. 0.]
+ [0. 0. 0. 0. 0.]
+ [1. 0. 1. 0. 0.]
+ [0. 0. 0. 1. 1.]
+ [0. 1. 0. 0. 0.]
+ [0. 0. 0. 0. 0.]
+ [0. 0. 0. 0. 0.]
+ [0. 0. 0. 0. 0.]
+ [0. 0. 0. 1. 0.]
+ [0. 0. 1. 0. 0.]
+ [0. 0. 0. 0. 0.]
+ [0. 0. 0. 0. 0.]
+ [0. 0. 0. 0. 0.]
+ [0. 0. 0. 0. 0.]
+ [0. 0. 0. 0. 0.]
+ [0. 0. 0. 0. 0.]]
+
+Key:
+ Cols = Flight(s)
+ Rows = Edges Traveled (i.e. Legs of Flight)
+ 1 = City is in route
+</pre>
+</div>
+</div>
 
 </div>
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="Optimization-Problems">Optimization Problems<a class="anchor-link" href="#Optimization-Problems">&#182;</a></h1><h2 id="Primal-Problem">Primal Problem<a class="anchor-link" href="#Primal-Problem">&#182;</a></h2><p>In the previous section, we defined the primal problem already; thus it can be written as,</p>
-$$\min\limits_{x} \sum\limits_{i=1}^{n} (c^T + d^TE_o)x_i$$$$\text{s.t.} \; Ex_i = b_i, x \geq 0 \forall i$$<p>In our primal problem, our variables represent the following:</p>
-<ul>
-<li>$c^T$ represents the travel cost along a given edge - i.e. the time to flight from one city to another, in minutes</li>
-<li>$d^T$ represents the cost of traveling through a city, in minutes; this will be calculated as function of the population of each city</li>
-<li>$E$ represents the graph flow which is solved as $E_i - E_o$</li>
-<li>$x$ represents the flow of people / flights through our graph</li>
-<li>$i$ represents a specific flight; thus, we attempting to calculate the cost of all flights through our graph</li>
-<li>$b_i$ represents the departure and arrival cities for our given flight $i$</li>
-<li>$n$ is the number of flights we'll be assessing</li>
-</ul>
-<p>The objective is ultimately attempting to calculate the total flight hours of the fleet of aircraft for the $100$ flights randomly generated. The first constraint - $Ex_i = b_i$ - ensures that a flight moves from its arrival to its destination along viable flight paths (as designated by our graph). The second constraint - $x &gt;= 0$ - ensures that flights don't move backwards through our graph structure (which makes sense, once we depart from a city we don't want to return to it to reach out destination).</p>
-<h2 id="Dual-problem">Dual problem<a class="anchor-link" href="#Dual-problem">&#182;</a></h2><p>Solving for the dual optimization problem, we can solve for the Lagrangian of our problem as follows,</p>
-$$\mathcal{L}(x,v,\mu) = \sum\limits_{i=1}^{n}(c^T+d^TE_o)x_i + \sum\limits_{i=1}^{n} v_i^T(Ex_i - b_i) - \sum\limits_{i=1}^{n}\mu_i^T x_i$$<p>We recall from our previous homeworks and lecture notes that we can solve for our dual constraint by taking the derivative of this function and setting it equal to zero; thus,</p>
-$$\frac{\partial}{\partial x}\mathcal{L}(x,v,\mu) = (c^T+d^TE_o) + v_i^TE - \mu_i^T = 0$$<p>Thus, our dual constraint is $(c^T+d^TE_o) + v_i^TE - \mu_i^T = 0$. Plugging in our dual constraint into our Lagrangian, we can see that our dual objective is $\sum\limits_{i=1}^{n}-v_i^Tb_i$. Thus, we can re-write our dual problem as,</p>
-$$\max\limits_{v, \mu} \sum\limits_{i=1}^{n} -v_i^Tb_i$$$$\text{s.t.} \; (c^T+d^TE_o) + v_i^TE - \mu_i^T = 0, \mu \geq 0$$<p>In our dual problem, our variables represent the following:</p>
-<ul>
-<li>$v$ represents our value function, which the total cost to go from our initial state to our final state - i.e. the cost from destination to arrival</li>
-<li>$\mu$ represents ineffiences along each edge, which should become zero as we solve for our optimal value</li>
-</ul>
 
 </div>
+
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[6]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">v</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">([</span><span class="n">nodes</span><span class="p">,</span> <span class="n">number_of_flights</span><span class="p">])</span>
+<span class="n">mu</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">([</span><span class="n">edges</span><span class="p">,</span> <span class="n">number_of_flights</span><span class="p">])</span>
+
+<span class="n">obj</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">-</span><span class="n">v</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">b</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+<span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span><span class="n">mu</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">]</span>
+<span class="n">constraints</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">c</span><span class="o">.</span><span class="n">T</span> <span class="o">+</span> <span class="n">d</span><span class="o">.</span><span class="n">T</span><span class="nd">@E_o</span><span class="p">)</span> <span class="o">+</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="nd">@E</span> <span class="o">-</span> <span class="n">mu</span><span class="o">.</span><span class="n">T</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+
+<span class="n">obj</span> <span class="o">=</span> <span class="mf">0.</span>
+<span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span><span class="n">mu</span><span class="o">&gt;=</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">number_of_flights</span><span class="p">):</span>
+    <span class="n">obj</span> <span class="o">=</span> <span class="n">obj</span> <span class="o">+</span> <span class="p">(</span><span class="o">-</span><span class="n">v</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:])</span>
+    <span class="n">constraints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">T</span> <span class="o">+</span> <span class="n">d</span><span class="o">.</span><span class="n">T</span><span class="nd">@E_o</span><span class="p">)</span> <span class="o">+</span> <span class="n">v</span><span class="p">[:,</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="nd">@E</span> <span class="o">-</span> <span class="n">mu</span><span class="p">[:,</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">T</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+
+<span class="n">dual</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Maximize</span><span class="p">(</span><span class="n">obj</span><span class="p">),</span> <span class="n">constraints</span><span class="p">)</span>
+<span class="n">dual</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Dual Problem&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Optimal Value:&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">round_</span><span class="p">((</span><span class="n">dual</span><span class="o">.</span><span class="n">value</span> <span class="o">/</span> <span class="mi">60</span><span class="p">),</span> <span class="n">decimals</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span> <span class="s1">&#39;Flight Hours&#39;</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Optimal v (1st 5 Columns):&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round_</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">value</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">],</span> <span class="n">decimals</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Optimal mu (1st 5 Columns):&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round_</span><span class="p">(</span><span class="n">mu</span><span class="o">.</span><span class="n">value</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">],</span> <span class="n">decimals</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+</pre></div>
+
+     </div>
 </div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="Applications">Applications<a class="anchor-link" href="#Applications">&#182;</a></h1><p>Both the primal and dual optimization problem are solved in the code included at the end of this PDF. As mentioned previously, our nodes consist of the cities we wish to service which include:</p>
-<ul>
-<li>Las Vegas, NV</li>
-<li>Reno, NV</li>
-<li>Salt Lake City, UT</li>
-<li>Seattle, WA</li>
-<li>Los Angeles, CA</li>
-<li>San Francisco, CA</li>
-</ul>
-<p>The graphs follow the graphs as illustrated in figures above for both the hub-and-spoke and point-to-point model. The costs along each edge were calculated using Google Maps flight estimates between city pairs. To generate our list of flights, I used the population of each city in my list and created a probability array out of the population. The city's with the higher populations were more likely to be included as either a destination or arrival airplane.</p>
-<p>The results of the code are discussed in the next section.</p>
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
+<pre>Dual Problem
+Optimal Value: 3035.53 Flight Hours
+
+Optimal v (1st 5 Columns):
+[[ -222.31    28.04  -211.24  -258.71  -244.05]
+ [ -266.47   -79.49    64.68  -965.04  -633.12]
+ [ -295.7   -671.74  -902.3   3757.97  3148.85]
+ [  659.26    69.92    52.66  -289.03  -898.15]
+ [  -72.63   344.54    94.23  -956.2   -786.3 ]
+ [  197.84   308.73   901.97 -1288.99  -587.23]]
+
+Optimal mu (1st 5 Columns):
+[[6.2640e+02 0.0000e+00 8.7000e+00 4.7165e+03 4.0927e+03]
+ [4.1054e+03 4.7318e+03 4.7231e+03 1.5300e+01 6.3910e+02]
+ [0.0000e+00 2.1330e+02 0.0000e+00 5.0020e+03 5.0020e+03]
+ [5.0020e+03 4.7887e+03 5.0020e+03 0.0000e+00 0.0000e+00]
+ [1.6680e+02 0.0000e+00 1.1000e+01 1.0140e+03 8.5880e+02]
+ [8.6440e+02 1.0313e+03 1.0202e+03 1.7300e+01 1.7250e+02]
+ [7.9210e+02 7.1600e+02 1.1650e+03 3.8000e+00 3.7370e+02]
+ [3.7500e+02 4.5110e+02 2.0000e+00 1.1633e+03 7.9340e+02]
+ [5.3850e+02 1.2388e+03 1.8493e+03 0.0000e+00 1.3109e+03]
+ [1.3107e+03 6.1050e+02 0.0000e+00 1.8493e+03 5.3840e+02]
+ [6.2700e+02 3.2070e+02 1.1642e+03 2.3700e+01 5.5560e+02]
+ [5.5380e+02 8.6010e+02 1.6600e+01 1.1571e+03 6.2520e+02]
+ [6.6560e+02 6.0220e+02 9.8570e+02 3.4000e+00 3.2070e+02]
+ [3.2190e+02 3.8530e+02 1.8000e+00 9.8410e+02 6.6680e+02]
+ [2.0310e+02 1.2096e+03 9.7650e+02 2.6780e+02 1.0468e+03]
+ [1.0534e+03 4.6900e+01 2.7990e+02 9.8870e+02 2.0960e+02]]
+</pre>
+</div>
+</div>
 
 </div>
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="Discussion">Discussion<a class="anchor-link" href="#Discussion">&#182;</a></h1><h2 id="Results">Results<a class="anchor-link" href="#Results">&#182;</a></h2><p>After generating a randomized sample of $100$ flights, the optimization problem as discussed was ran for both graph structures. The resulting primal and dual problem optimal values - i.e. total flight hours - for the graph structures are defined in the table below.</p>
-<table>
-<thead><tr>
-<th style="text-align:center">Hub-and-spoke Graph</th>
-<th style="text-align:center">Point-to-point Graph</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:center">3304 flight hours</td>
-<td style="text-align:center">3035 flight hours</td>
-</tr>
-</tbody>
-</table>
-<p>While the results shown in the table above is the result for a random sample of $100$ flights, the trend of the point-to-point having a lower cost (i.e. total flight hours) than the hub-and-spoke was consistent for numerous samples of flights. Across multiple test samples, the average difference in time ranged from $5 - 10\%$. While this difference may not seem substantial, this is considered a significant amount of savings in the context of the small margin aviation business.</p>
-<p>Upon reviewing the results, it seems that the point-to-point graph is more likely to succeed because it provides greater versatility for travel <em>from</em> the largest cities (namely Los Angeles). As discussed in previous sections, the randomly sampled flights was weighted with respect to population size of departure cities. In the point-to-point graph, travelers from these larger cities are more likely to immediately travel to their destination city without requiring a connection, given that there is a greater chance to have a direct flight. With the hub-and-spoke model, all flights have to travel through Las Vegas (node 1), which requires a minimum of 1 connecting flight for any flight not including Las Vegas as destination or arrival city.</p>
-<h2 id="Future-expansion">Future expansion<a class="anchor-link" href="#Future-expansion">&#182;</a></h2><p>Some potential future expansions of this work could including,</p>
-<ul>
-<li>Model the cost of adding an edge to our graph; currently the model is able to account for the cost of having an "unoptimized" set of edges in our graph but it doesn't not account for the added cost of having additional edges. Having an additional edge, in the context of the this example, results in additional cost in terms of additional aircraft to perform the route, additional staff to support the additional gates at the airport, etc.</li>
-<li>Model in conjunction with the cost the reward (i.e. financial incentive) of supporting the flights as inputted; likely would involve a dual optimization type of problem with minimizing cost but maximizing revenue</li>
-<li>Ability to evaluate the added cost of adding an additional city / node to the graph; would be valuable for an airline to understand what other cities may lead to additional revenue</li>
-<li>Updating the model to be a function of time in order to better account for the way in which flights can't occur all at the same time, ultimately requiring stagnation in between flights or additional delays due to air or ground traffic congestion while performing the flights</li>
-<li>Accounting for the cost of congestion through specific cities; it would be beneficial to understand how funneling flights through specific hub cities would result in additional cost to the system due to congestion of multiple flights through a single node in our graph</li>
-</ul>
 
 </div>
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="References">References<a class="anchor-link" href="#References">&#182;</a></h1><ul>
-<li><a href="https://aeronauticsonline.com/the-airline-economics-of-the-bicycle-wheel-point-to-point-vs-hub-and-spoke-flying/">https://aeronauticsonline.com/the-airline-economics-of-the-bicycle-wheel-point-to-point-vs-hub-and-spoke-flying/</a></li>
-<li><a href="https://transportgeography.org/contents/chapter2/geography-of-transportation-networks/point-to-point-versus-hub-and-spoke-network/#:~:text=A%20point%2Dto%2Dpoint%20network,intermediary%20location%20called%20a%20hub">https://transportgeography.org/contents/chapter2/geography-of-transportation-networks/point-to-point-versus-hub-and-spoke-network/#:~:text=A%20point%2Dto%2Dpoint%20network,intermediary%20location%20called%20a%20hub</a></li>
-<li><a href="https://simpleflying.com/how-do-airlines-plan-routes/">https://simpleflying.com/how-do-airlines-plan-routes/</a></li>
-</ul>
 
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span> 
+</pre></div>
+
+     </div>
 </div>
+</div>
+</div>
+
 </div>
 </body>
 
